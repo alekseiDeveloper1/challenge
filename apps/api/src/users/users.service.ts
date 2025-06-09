@@ -1,24 +1,36 @@
 import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../../prisma/prisma.service';
+import * as bcrypt from 'bcrypt';
 
-// This should be a real class/interface representing a user entity
-export type User = any;
+export type User = {
+  id: number;
+  email: string;
+  name: string;
+  password: string;
+  createdAt: Date;
+  updatedAt: Date;
+};
 
 @Injectable()
 export class UsersService {
-  private readonly users = [
-    {
-      userId: 1,
-      username: 'john',
-      password: 'changeme',
-    },
-    {
-      userId: 2,
-      username: 'maria',
-      password: 'guess',
-    },
-  ];
+  constructor(private prisma: PrismaService) {}
 
-  async findOne(username: string): Promise<User | undefined> {
-    return this.users.find(user => user.username === username);
+  private readonly SALT_ROUNDS = 12;
+
+  async createUser(email: string, password: string, name: string): Promise<User> {
+    const hashedPassword = await bcrypt.hash(password, this.SALT_ROUNDS) || '';
+    return this.prisma.user.create({
+      data: { email, password: hashedPassword, name },
+    });
+  }
+
+  async findAll() {
+    return this.prisma.user.findMany();
+  }
+
+  async findOne(id: number) {
+    return this.prisma.user.findUnique({
+      where: { id },
+    });
   }
 }

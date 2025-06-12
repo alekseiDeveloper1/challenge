@@ -5,15 +5,18 @@ import { UsersModule } from '../users/users.module';
 import { AuthController } from './auth.controller';
 import { AuthGuard } from './auth.guard';
 import { AuthService } from './auth.service';
-import { jwtConstants } from './constants';
+import { JwtStrategy } from './strategies/jwt.strategy';
+import { PrismaModule } from '../../prisma/prisma.module';
+import { PasswordService } from './password.service';
 
 @Module({
   imports: [
+    PrismaModule,
     UsersModule,
     JwtModule.register({
       global: true,
-      secret: jwtConstants.secret,
-      signOptions: { expiresIn: '60s' },
+      secret: process.env.JWT_SECRET,
+      signOptions: { expiresIn: '1h' },
     }),
   ],
   providers: [
@@ -22,8 +25,10 @@ import { jwtConstants } from './constants';
       provide: APP_GUARD,
       useClass: AuthGuard,
     },
+    JwtStrategy,
+    PasswordService,
   ],
   controllers: [AuthController],
-  exports: [AuthService],
+  exports: [AuthService, JwtStrategy],
 })
 export class AuthModule {}

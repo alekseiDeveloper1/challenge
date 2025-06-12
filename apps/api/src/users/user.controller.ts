@@ -4,27 +4,25 @@ import {
   Get,
   HttpCode,
   HttpStatus, Param,
-  Post,
+  Post, UseGuards, Request
 } from '@nestjs/common';
 import { UsersService } from './users.service';
+import { JwtAuthGuard } from './jwt-auth.guard';
+import { Public } from '../auth/decorators/public.decorator';
 
-@Controller('users')
+@Controller()
 export class UserController {
   constructor(private usersService: UsersService) {}
 
-  @HttpCode(HttpStatus.OK)
-  @Post()
-  signIn(@Body() signInDto: Record<string, any>) {
-    return this.usersService.createUser(signInDto.email, signInDto.password, signInDto.name);
-  }
-
-  @Get()
+  @UseGuards(JwtAuthGuard)
+  @Get('users')
   findAll() {
     return this.usersService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
+  @UseGuards(JwtAuthGuard)
+  @Get('me')
+  getProfile(@Request() req:any) {
+    return this.usersService.findOne(req);
   }
 }

@@ -30,4 +30,16 @@ export class AuthController {
   register(@Body() signInDto: RegisterDto) {
     return this.authService.createUser(signInDto.email, signInDto.password, signInDto.name);
   }
+
+  @Public()
+  @Post('refresh')
+  async refresh(@Res({ passthrough: true }) res: Response) {
+    const refreshToken = res.req.cookies['refreshToken'];
+    const tokens = await this.authService.refreshTokens(refreshToken);
+    res.cookie('refreshToken', tokens.refresh_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+    });
+    return { accessToken: tokens.access_token };
+  }
 }

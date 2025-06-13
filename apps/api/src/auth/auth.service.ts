@@ -43,4 +43,36 @@ export class AuthService {
       }),
     };
   }
+
+  async refreshTokens(refreshToken: string) {
+    try {
+      const payload = this.jwtService.verify(refreshToken, {
+        secret: process.env.JWT_REFRESH_SECRET,
+      });
+
+      const user = await this.usersService.findByEmail(payload.email);
+      if (!user) {
+        throw new UnauthorizedException('User not found');
+      }
+
+      const newPayload = { sub: user.id, email: user.email };
+
+      const newAccessToken = await this.jwtService.signAsync(newPayload, {
+        expiresIn: '15m',
+        secret: process.env.JWT_ACCESS_SECRET,
+      });
+
+      const newRefreshToken = await this.jwtService.signAsync(newPayload, {
+        expiresIn: '7d',
+        secret: process.env.JWT_REFRESH_SECRET,
+      });
+
+      return {
+        access_token: newAccessToken,
+        refresh_token: newRefreshToken,
+      };
+    } catch (e) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+  }
 }

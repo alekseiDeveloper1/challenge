@@ -1,11 +1,7 @@
 import {
   Body,
   Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Post,
-  Request, Res
+  Post, Res
 } from '@nestjs/common';
 import { Response } from 'express';
 import { AuthService } from './auth.service';
@@ -17,7 +13,6 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Public()
-  @HttpCode(HttpStatus.OK)
   @Post('login')
   async signIn(@Body() signInDto: loginDto, @Res({ passthrough: true }) res:Response) {
     const tokens = await this.authService.signIn(signInDto.email, signInDto.password);
@@ -30,7 +25,7 @@ export class AuthController {
     return { access_token: tokens.access_token };
   }
 
-  @HttpCode(HttpStatus.OK)
+  @Public()
   @Post('register')
   register(@Body() signInDto: RegisterDto) {
     return this.authService.createUser(signInDto.email, signInDto.password, signInDto.name);

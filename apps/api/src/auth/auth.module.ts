@@ -8,6 +8,7 @@ import { AuthService } from './auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { PrismaModule } from '../../prisma/prisma.module';
 import { PasswordService } from './password.service';
+import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { PasswordService } from './password.service';
       global: true,
       secret: process.env.JWT_SECRET,
     }),
+    CacheModule.register({})
   ],
   providers: [
     AuthService,

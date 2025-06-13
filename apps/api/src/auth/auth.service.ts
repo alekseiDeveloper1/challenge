@@ -1,9 +1,11 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { User, UsersService } from '../users/users.service';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../prisma/prisma.service';
 import { PasswordService } from './password.service';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache} from 'cache-manager';
 
 @Injectable()
 export class AuthService {
@@ -11,16 +13,19 @@ export class AuthService {
     private usersService: UsersService,
     private jwtService: JwtService,
     private prisma: PrismaService,
-    private passwordService: PasswordService
+    private passwordService: PasswordService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache
   ) {}
   private readonly SALT_ROUNDS = 12;
 
   async createUser(email: string, password: string, name: string): Promise<User> {
+    await this.cacheManager.del('all_users');
     const hashedPassword = await bcrypt.hash(password, this.SALT_ROUNDS) || '';
     return this.prisma.user.create({
       data: { email, password: hashedPassword, name },
     });
   }
+
   async signIn(email: string, pass: string) {
     const user = await this.usersService.findByEmail(email);
     if (!await this.passwordService.comparePasswords(pass, user?.password)) {

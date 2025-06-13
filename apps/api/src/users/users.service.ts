@@ -1,5 +1,6 @@
 import { Injectable, Request } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { CacheKey, CacheTTL } from '@nestjs/cache-manager';
 
 export type User = {
   id: number;
@@ -12,8 +13,11 @@ export type User = {
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
-
+  constructor(
+    private prisma: PrismaService
+  ) {}
+  @CacheKey('all_users')
+  @CacheTTL(30)
   async findAll() {
     return this.prisma.user.findMany();
   }

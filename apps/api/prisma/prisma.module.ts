@@ -1,10 +1,9 @@
-// src/prisma/prisma.module.ts
 import { Global, Module } from '@nestjs/common';
 import { PrismaService } from './prisma.service';
 
-@Global() // Делает модуль глобально доступным
+@Global()
 @Module({
   providers: [PrismaService],
-  exports: [PrismaService], // Важно: экспортируем сервис
+  exports: [PrismaService],
 })
 export class PrismaModule {}

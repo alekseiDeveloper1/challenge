@@ -1,9 +1,9 @@
 import {
   Body,
   Controller,
-  Post, Res
+  Post, Req, Res, UnauthorizedException
 } from '@nestjs/common';
-import { Response } from 'express';
+import { Response, Request } from 'express';
 import { AuthService } from './auth.service';
 import { Public } from './decorators/public.decorator';
 import { loginDto } from './dto/login.dto';
@@ -21,7 +21,6 @@ export class AuthController {
       secure: true,
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 дней
     });
-
     return { access_token: tokens.access_token };
   }
 
@@ -33,12 +32,16 @@ export class AuthController {
 
   @Public()
   @Post('refresh')
-  async refresh(@Res({ passthrough: true }) res: Response) {
-    const refreshToken = res.req.cookies['refreshToken'];
+  async refresh( @Req() req: Request, @Res({ passthrough: true }) res:Response) {
+    if (!req.cookies) {
+      throw new UnauthorizedException('Token not found');
+    }
+    const refreshToken = req.cookies['refresh_token'];
+
     const tokens = await this.authService.refreshTokens(refreshToken);
-    res.cookie('refreshToken', tokens.refresh_token, {
+    res.cookie('refresh_token', tokens.refresh_token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: true,
     });
     return { accessToken: tokens.access_token };
   }

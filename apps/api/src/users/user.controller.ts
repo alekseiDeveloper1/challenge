@@ -4,10 +4,17 @@ import {
   Request
 } from '@nestjs/common';
 import { UsersService } from './users.service';
+import { Public } from '../auth/decorators/public.decorator';
 
 @Controller()
 export class UserController {
   constructor(private usersService: UsersService) {}
+
+  @Public()
+  @Get('/')
+  checkHealth() {
+    return 'Hello World!';
+  }
 
   @Get('users')
   findAll() {

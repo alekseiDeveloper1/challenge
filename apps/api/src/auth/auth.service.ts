@@ -1,6 +1,6 @@
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { User, UsersService } from '../users/users.service';
+import { User } from '../users/users.service';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../prisma/prisma.service';
 import { PasswordService } from './password.service';
@@ -10,7 +10,6 @@ import { Cache} from 'cache-manager';
 @Injectable()
 export class AuthService {
   constructor(
-    private usersService: UsersService,
     private jwtService: JwtService,
     private prisma: PrismaService,
     private passwordService: PasswordService,
@@ -27,7 +26,7 @@ export class AuthService {
   }
 
   async signIn(email: string, pass: string) {
-    const user = await this.usersService.findByEmail(email);
+    const user = await this.findByEmailWithPassword(email);
     if (!await this.passwordService.comparePasswords(pass, user?.password)) {
       throw new UnauthorizedException();
     }
@@ -44,29 +43,25 @@ export class AuthService {
     };
   }
 
-  async refreshTokens(refreshToken: string) {
+  public async refreshTokens(refreshToken: string) {
     try {
       const payload = this.jwtService.verify(refreshToken, {
         secret: process.env.JWT_REFRESH_SECRET,
       });
-
-      const user = await this.usersService.findByEmail(payload.email);
+      const user = await this.findByEmail(payload.email);
       if (!user) {
         throw new UnauthorizedException('User not found');
       }
 
       const newPayload = { sub: user.id, email: user.email };
-
       const newAccessToken = await this.jwtService.signAsync(newPayload, {
         expiresIn: '15m',
         secret: process.env.JWT_ACCESS_SECRET,
       });
-
       const newRefreshToken = await this.jwtService.signAsync(newPayload, {
         expiresIn: '7d',
         secret: process.env.JWT_REFRESH_SECRET,
       });
-
       return {
         access_token: newAccessToken,
         refresh_token: newRefreshToken,
@@ -74,5 +69,27 @@ export class AuthService {
     } catch (e) {
       throw new UnauthorizedException('Invalid refresh token');
     }
+  }
+
+  async findByEmail(email: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+    });
+    if (!user) return null;
+    return {
+      id: user.id,
+      email: user.email,
+    };
+  }
+  private async findByEmailWithPassword(email: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+    });
+    if (!user) return null;
+    return {
+      id: user.id,
+      email: user.email,
+      password: user.password
+    };
   }
 }

@@ -23,10 +23,10 @@ export class UsersService {
   }
 
   async findOne(@Request() req:any) {
-    return {
-      id: req.user.userId,
-      email: req.user.email,
-      roles: req.user.roles
-    };
+    const user = await this.prisma.user.findUnique({
+      where: { email: req.user.email },
+    });
+    delete user.password;
+    return user;
   }
 }

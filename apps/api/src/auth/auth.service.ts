@@ -6,6 +6,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { PasswordService } from './password.service';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache} from 'cache-manager';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
@@ -13,7 +14,8 @@ export class AuthService {
     private jwtService: JwtService,
     private prisma: PrismaService,
     private passwordService: PasswordService,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+  private configService: ConfigService
   ) {}
   private readonly SALT_ROUNDS = 12;
 
@@ -27,6 +29,7 @@ export class AuthService {
 
   async signIn(email: string, pass: string) {
     const user = await this.findByEmailWithPassword(email);
+    const secret = this.configService.get<string>('JWT_SECRET');
     if (!await this.passwordService.comparePasswords(pass, user?.password)) {
       throw new UnauthorizedException();
     }
@@ -34,11 +37,11 @@ export class AuthService {
     return {
       access_token: await this.jwtService.signAsync(payload, {
         expiresIn: '15m',
-        secret: process.env.JWT_ACCESS_SECRET,
+        secret: secret,
       }),
       refresh_token: await this.jwtService.signAsync(payload, {
         expiresIn: '7d',
-        secret: process.env.JWT_REFRESH_SECRET,
+        secret: secret,
       }),
     };
   }

@@ -1,11 +1,13 @@
-"use client"
+'use client'
 import React from "react";
-import { Form, Input, Select, SelectItem, Checkbox, Button } from "@heroui/react";
-import {ValidationErrors} from '@react-types/shared'
+import { Form, Input, Checkbox, Button, HeroUIProvider } from '@heroui/react';
+import { useAuth } from '../../providers/AuthProvider';
+import { useRouter } from 'next/navigation';
+
 interface FormData {
-    name?: string;
-    email?: string;
-    password?: string;
+    name: string;
+    email: string;
+    password: string;
     country?: string;
     terms?: string;
 }
@@ -18,10 +20,13 @@ interface FormErrors {
 }
 
 export default function App() {
+    const router = useRouter()
     const [password, setPassword] = React.useState("");
+    const [name, setName] = React.useState("");
+    const [email, setEmail] = React.useState("");
     const [submitted, setSubmitted] = React.useState<FormData | null>(null);
     const [errors, setErrors] = React.useState<any>({});
-
+    const {register} = useAuth()
     // Real-time password validation
     const getPasswordError = (value: string): string | null => {
         if (value.length < 4) {
@@ -40,7 +45,7 @@ export default function App() {
     const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
-        const data: FormData = Object.fromEntries(formData.entries());
+        const data:any = Object.fromEntries(formData.entries());
 
         // Custom validation checks
         const newErrors:any = {};
@@ -70,22 +75,21 @@ export default function App() {
 
         // Clear errors and submit
         setErrors({});
-        setSubmitted(data);
+        register(data.email, data.password, data.name)
     };
 
     return (
-        <html lang="en" >
-        <body className="dark text-foreground bg-background">
-        <Form
-            className="w-full justify-center items-center space-y-4"
+      <HeroUIProvider>
+          <Form
+            className="w-full justify-center items-center space-y-4 mt-20"
             validationErrors={errors}
             onReset={() => setSubmitted(null)}
             onSubmit={onSubmit}
-        >
-            <div className="flex flex-col gap-4 max-w-md">
-                <Input
+          >
+              <div className="flex flex-col gap-4 max-w-md">
+                  <Input
                     isRequired
-                    errorMessage={({validationDetails}: { validationDetails: { valueMissing: boolean } }) => {
+                    errorMessage={({ validationDetails }: { validationDetails: { valueMissing: boolean } }) => {
                         if (validationDetails.valueMissing) {
                             return "Please enter your name";
                         }
@@ -95,11 +99,13 @@ export default function App() {
                     labelPlacement="outside"
                     name="name"
                     placeholder="Enter your name"
-                />
+                    value={name}
+                    onValueChange={setName}
+                  />
 
-                <Input
+                  <Input
                     isRequired
-                    errorMessage={({validationDetails}: {
+                    errorMessage={({ validationDetails }: {
                         validationDetails: { valueMissing: boolean; typeMismatch: boolean }
                     }) => {
                         if (validationDetails.valueMissing) {
@@ -114,9 +120,11 @@ export default function App() {
                     name="email"
                     placeholder="Enter your email"
                     type="email"
-                />
+                    value={email}
+                    onValueChange={setEmail}
+                  />
 
-                <Input
+                  <Input
                     isRequired
                     errorMessage={getPasswordError(password)}
                     isInvalid={getPasswordError(password) !== null}
@@ -127,23 +135,9 @@ export default function App() {
                     type="password"
                     value={password}
                     onValueChange={setPassword}
-                />
+                  />
 
-                <Select
-                    isRequired
-                    label="Country"
-                    labelPlacement="outside"
-                    name="country"
-                    placeholder="Select country"
-                >
-                    <SelectItem key="ar">Argentina</SelectItem>
-                    <SelectItem key="us">United States</SelectItem>
-                    <SelectItem key="ca">Canada</SelectItem>
-                    <SelectItem key="uk">United Kingdom</SelectItem>
-                    <SelectItem key="au">Australia</SelectItem>
-                </Select>
-
-                <Checkbox
+                  <Checkbox
                     isRequired
                     classNames={{
                         label: "text-small",
@@ -152,31 +146,29 @@ export default function App() {
                     name="terms"
                     validationBehavior="aria"
                     value="true"
-                    onValueChange={() => setErrors((prev: any) => ({...prev, terms: undefined}))}
-                >
-                    I agree to the terms and conditions
-                </Checkbox>
+                    onValueChange={() => setErrors((prev: any) => ({ ...prev, terms: undefined }))}
+                  >
+                      I agree to the terms and conditions
+                  </Checkbox>
 
-                {errors.terms && <span className="text-danger text-small">{errors.terms}</span>}
+                  {errors.terms && <span className="text-danger text-small">{errors.terms}</span>}
 
-                <div className="flex gap-4">
-                    <Button className="w-full" color="primary" type="submit">
-                        Submit
-                    </Button>
-                    <Button type="reset" variant="bordered">
-                        Reset
-                    </Button>
-                </div>
-            </div>
+                  <div className="flex gap-4">
+                      <Button className="w-full" color="primary" type="submit">
+                          Submit
+                      </Button>
+                      <Button type="reset" variant="bordered">
+                          Reset
+                      </Button>
+                  </div>
+              </div>
 
-            {submitted && (
+              {submitted && (
                 <div className="text-small text-default-500 mt-4">
                     Submitted data: <pre>{JSON.stringify(submitted, null, 2)}</pre>
                 </div>
-            )}
-        </Form>
-        </body>
-        </html>
-
-        );
-        }
+              )}
+          </Form>
+      </HeroUIProvider>
+    );
+}

@@ -1,3 +1,7 @@
 import { config } from '@repo/jest-config/nest';
-
-export default config;
+module.exports = {
+  env: {
+    JWT_SECRET: process.env.JWT_SECRET,
+  },
+  ...config
+};

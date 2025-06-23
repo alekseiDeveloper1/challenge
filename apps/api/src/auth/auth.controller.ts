@@ -19,9 +19,14 @@ export class AuthController {
     res.cookie('refresh_token', tokens.refresh_token, {
       httpOnly: true,
       secure: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 дней
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
-    return { access_token: tokens.access_token };
+    res.cookie('access_token', tokens.access_token, {
+      httpOnly: true,
+      secure: true,
+      maxAge: 60 * 60 * 1000,
+    });
+    return { access_token: true };
   }
 
   @Public()

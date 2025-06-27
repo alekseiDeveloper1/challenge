@@ -1,5 +1,9 @@
 {
   "name": "@repo/eslint-config",
+  "main": "base.js",
+  "peerDependencies": {
+    "eslint": ">=8"
+  },
   "version": "0.0.0",
   "private": true,
   "files": [

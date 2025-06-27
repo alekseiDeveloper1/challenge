@@ -1,6 +1,7 @@
-import { User } from '@shared/types'
+
 import { ProtectedRoute } from '../components/auth/ProtectedRoute'
 import { cookies } from 'next/headers';
+import { User } from '../lib/auth';
 async function getCurrentUsers(): Promise<User[] | null> {
   const cookieStore = await cookies()
   const accessToken = cookieStore.get('access_token')?.value
@@ -8,7 +9,7 @@ async function getCurrentUsers(): Promise<User[] | null> {
   const headers = new Headers();
   headers.append('Authorization', `Bearer ${accessToken.trim()}`);
   headers.append('Content-Type', 'application/json');
-  const response = await fetch(`${process.env.API_URL}/users`, {
+  const response = await fetch(`${process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL}/users`, {
     method: 'GET',
     headers,
     credentials: 'include'

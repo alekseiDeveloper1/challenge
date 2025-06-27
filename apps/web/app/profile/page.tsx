@@ -1,7 +1,7 @@
 import { ProtectedRoute } from '../components/auth/ProtectedRoute'
 import { cookies } from 'next/headers';
-import { User } from '@shared/types';
 import { Card, CardBody } from '@heroui/react';
+import { User } from '../lib/auth';
 async function getCurrentUser(): Promise<User | null> {
   const cookieStore = await cookies()
   const accessToken = cookieStore.get('access_token')?.value
@@ -9,7 +9,7 @@ async function getCurrentUser(): Promise<User | null> {
   const headers = new Headers();
   headers.append('Authorization', `Bearer ${accessToken.trim()}`);
   headers.append('Content-Type', 'application/json');
-  const response = await fetch(`${process.env.API_URL}/me`, {
+  const response = await fetch(`${process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL}/me`, {
     method: 'GET',
     headers,
     credentials: 'include'

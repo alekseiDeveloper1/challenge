@@ -6,7 +6,7 @@
   "author": "",
   "license": "UNLICENSED",
   "scripts": {
-    "dev": "pnpm run --parallel dev",
+    "dev": "turbo run dev",
     "build": "turbo run build",
     "test": "turbo run test",
     "test:e2e": "turbo run test:e2e",
@@ -20,9 +20,10 @@
     "turbo": "^2.5.4"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=18",
+    "npm": ">=9.0.0"
   },
-  "packageManager": "pnpm@10.1.0",
+  "packageManager": "npm@10.1.0",
   "workspaces": [
     "apps/*",
     "packages/*"

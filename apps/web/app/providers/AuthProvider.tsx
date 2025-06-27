@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { User } from '@shared/types'
+import { User } from '../lib/auth';
 interface AuthContextType {
     user: User | null
     login: (email: string, password: string) => Promise<void>
@@ -15,7 +15,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null)
     const router = useRouter()
-    const apiUrl = process.env.API_URL;
+    const apiUrl = process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL;
     if (!apiUrl) throw new Error("API_URL is not defined");
     const login = async (email: string, password: string) => {
         const response = await fetch(`${apiUrl}/auth/login`, {
